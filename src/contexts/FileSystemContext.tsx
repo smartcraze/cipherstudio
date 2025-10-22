@@ -15,7 +15,7 @@ const defaultFiles: FileNode[] = [
         id: "2",
         name: "App.tsx",
         type: "file",
-        content: `function App() {\n  return (\n    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">\n      <div className="text-center text-white">\n        <h1 className="text-5xl font-bold mb-4">Welcome to IDE Craft Pro</h1>\n        <p className="text-xl mb-4">Start coding your React app here!</p>\n        <p className="text-sm opacity-80">Edit this code in the editor to see changes live!</p>\n      </div>\n    </div>\n  );\n}\n\nexport default App;`,
+        content: `function App() {\n  return (\n    <div className="min-h-screen flex items-center justify-center bg-black">\n      <div className="text-center text-white">\n        <h1 className="text-5xl font-bold mb-4">Welcome to IDE Craft Pro</h1>\n        <p className="text-xl mb-4">Start coding your React app here!</p>\n        <p className="text-sm opacity-80">Edit this code in the editor to see changes live!</p>\n      </div>\n    </div>\n  );\n}\n\nexport default App;`,
       },
       {
         id: "3",
