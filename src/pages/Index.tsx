@@ -13,21 +13,18 @@ const Index = () => {
         
         <div className="flex-1 overflow-hidden">
           <PanelGroup direction="horizontal" className="h-full">
-            {/* File Explorer */}
             <Panel defaultSize={20} minSize={15} maxSize={35}>
               <FileExplorer />
             </Panel>
 
             <PanelResizeHandle className="w-1 bg-panel-border hover:bg-primary transition-colors" />
 
-            {/* Code Editor */}
             <Panel defaultSize={40} minSize={30}>
               <CodeEditor />
             </Panel>
 
             <PanelResizeHandle className="w-1 bg-panel-border hover:bg-primary transition-colors" />
 
-            {/* Preview Panel */}
             <Panel defaultSize={40} minSize={30}>
               <PreviewPanel />
             </Panel>

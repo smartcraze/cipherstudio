@@ -40,7 +40,13 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
   });
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
 
-  // Auto-select App.tsx on initial load
+  /**
+   * Auto-selects App.tsx on initial load
+   * 
+   * Recursively searches the file tree for App.tsx and selects it
+   * if no file is currently selected. This provides a better initial
+   * user experience.
+   */
   useEffect(() => {
     if (!selectedFile && files.length > 0) {
       const findAppFile = (nodes: FileNode[]): FileNode | null => {
@@ -67,6 +73,13 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cipherstudio-files", JSON.stringify(files));
   }, [files]);
 
+  /**
+   * Recursively searches for a node by ID in the file tree
+   * 
+   * @param nodes - Array of nodes to search through
+   * @param id - Unique identifier of the node to find
+   * @returns The matching node or null if not found
+   */
   const findNodeById = (nodes: FileNode[], id: string): FileNode | null => {
     for (const node of nodes) {
       if (node.id === id) return node;
@@ -84,6 +97,16 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Creates a new file in the file system
+   * 
+   * If parentId is null, creates the file at the root level.
+   * Otherwise, recursively finds the parent folder and adds the file to it.
+   * Automatically opens the parent folder to show the new file.
+   * 
+   * @param parentId - ID of the parent folder, or null for root level
+   * @param name - Name of the new file
+   */
   const createFile = (parentId: string | null, name: string) => {
     const newFile: FileNode = {
       id: Date.now().toString(),
@@ -114,6 +137,16 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     toast({ title: "File created", description: `${name} has been created.` });
   };
 
+  /**
+   * Creates a new folder in the file system
+   * 
+   * If parentId is null, creates the folder at the root level.
+   * Otherwise, recursively finds the parent folder and adds the new folder to it.
+   * Automatically opens the parent folder to show the new folder.
+   * 
+   * @param parentId - ID of the parent folder, or null for root level
+   * @param name - Name of the new folder
+   */
   const createFolder = (parentId: string | null, name: string) => {
     const newFolder: FileNode = {
       id: Date.now().toString(),
@@ -145,6 +178,14 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     toast({ title: "Folder created", description: `${name} has been created.` });
   };
 
+  /**
+   * Recursively deletes a node from the file tree
+   * 
+   * Traverses the entire tree structure to find and remove the node with
+   * the specified ID. Also clears the selection if the deleted node was selected.
+   * 
+   * @param id - ID of the node to delete
+   */
   const deleteNode = (id: string) => {
     const removeNode = (nodes: FileNode[]): FileNode[] =>
       nodes.filter((node) => {
@@ -162,6 +203,15 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     toast({ title: "Deleted", description: "Item has been deleted." });
   };
 
+  /**
+   * Updates the content of a file
+   * 
+   * Recursively searches for the file and updates its content.
+   * Also updates the selected file if it matches the updated file.
+   * 
+   * @param id - ID of the file to update
+   * @param content - New content for the file
+   */
   const updateFileContent = (id: string, content: string) => {
     const updateContent = (nodes: FileNode[]): FileNode[] =>
       nodes.map((node) => {
@@ -180,6 +230,14 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Toggles the open/closed state of a folder
+   * 
+   * Recursively searches for the folder and inverts its isOpen property
+   * to show or hide its children.
+   * 
+   * @param id - ID of the folder to toggle
+   */
   const toggleFolder = (id: string) => {
     const toggle = (nodes: FileNode[]): FileNode[] =>
       nodes.map((node) => {
@@ -206,6 +264,15 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     toast({ title: "Exported", description: "Project exported successfully." });
   };
 
+  /**
+   * Imports a project from a JSON file
+   * 
+   * Reads the selected file, parses the JSON content, and replaces
+   * the current file structure with the imported data. Clears any
+   * selected file and shows appropriate success/error messages.
+   * 
+   * @param fileList - FileList containing the JSON file to import
+   */
   const importProject = (fileList: FileList) => {
     const file = fileList[0];
     if (!file) return;

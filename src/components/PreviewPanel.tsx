@@ -14,23 +14,24 @@ export function PreviewPanel() {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isPending, setIsPending] = useState(false);
 
-  // Debounce file changes to prevent constant reloading
+  /**
+   * Debounces file changes to prevent excessive preview reloads
+   * 
+   * Waits 800ms after the last file change before updating the preview.
+   * This improves performance by avoiding constant re-renders while typing.
+   */
   useEffect(() => {
-    // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Show pending state if files have changed
     setIsPending(true);
 
-    // Set new timer - wait 800ms after last change before updating preview
     debounceTimerRef.current = setTimeout(() => {
       setDebouncedFiles(files);
       setIsPending(false);
     }, 800);
 
-    // Cleanup
     return () => {
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
@@ -38,6 +39,15 @@ export function PreviewPanel() {
     };
   }, [files]);
 
+  /**
+   * Recursively flattens the file tree structure into a single array
+   * 
+   * Traverses the nested folder structure and collects all file nodes,
+   * excluding folders from the result.
+   * 
+   * @param nodes - Array of file/folder nodes to traverse
+   * @returns Flattened array containing only file nodes
+   */
   const getAllFiles = (nodes: FileNode[]): FileNode[] => {
     let result: FileNode[] = [];
     nodes.forEach((node) => {
@@ -56,7 +66,6 @@ export function PreviewPanel() {
     setError(null);
     setIsLoading(true);
     setIsPending(false);
-    // Force immediate update on manual refresh
     setDebouncedFiles(files);
   };
 
@@ -84,21 +93,24 @@ export function PreviewPanel() {
     }
 
     try {
-      // Transform the code to handle both default and named exports
+      /**
+       * Transform ES6 module exports for browser execution
+       * 
+       * Converts various export patterns to browser-compatible code:
+       * 1. 'export default App' -> 'const AppComponent = App'
+       * 2. 'export default function App()' -> 'function App()'
+       * 3. 'export default () => {}' -> 'const AppComponent = () => {}'
+       * 4. Removes all named exports (export const/let/var/function/class)
+       */
       let transformedCode = appFile.content;
       
-      // Replace 'export default' with a variable assignment
       transformedCode = transformedCode.replace(/export\s+default\s+(\w+);?\s*$/m, 'const AppComponent = $1;');
-      
-      // Handle inline default export: export default function App() { ... }
       transformedCode = transformedCode.replace(/export\s+default\s+function\s+(\w+)/g, 'function $1');
       
-      // Handle inline default export: export default () => { ... }
       if (transformedCode.includes('export default')) {
         transformedCode = transformedCode.replace(/export\s+default\s+/, 'const AppComponent = ');
       }
       
-      // Remove other export statements
       transformedCode = transformedCode.replace(/export\s+(?:const|let|var|function|class)\s+/g, '');
       
       console.log('Transformed Code:', transformedCode);
@@ -173,13 +185,11 @@ export function PreviewPanel() {
         iframeRef.current.src = url;
         setError(null);
         
-        // Set loading to false after iframe loads
         iframeRef.current.onload = () => {
           setIsLoading(false);
         };
       }
 
-      // Cleanup function
       return () => {
         URL.revokeObjectURL(url);
       };

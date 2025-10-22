@@ -25,8 +25,17 @@ export function CodeEditor() {
     return () => observer.disconnect();
   }, []);
 
+  /**
+   * Configures Monaco Editor for TypeScript/JSX support
+   * 
+   * This function sets up the Monaco editor with proper TypeScript and JSX compilation options,
+   * configures diagnostics to ignore common external library errors, and adds React type definitions
+   * to enable IntelliSense for React hooks and components.
+   * 
+   * @param editor - Monaco editor instance
+   * @param monaco - Monaco namespace with language services
+   */
   const handleEditorDidMount: OnMount = (editor, monaco) => {
-    // Configure TypeScript compiler options for JSX support
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       jsx: monaco.languages.typescript.JsxEmit.React,
       jsxFactory: 'React.createElement',
@@ -49,7 +58,6 @@ export function CodeEditor() {
       esModuleInterop: true,
     });
 
-    // Disable type checking for external libraries
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: false,
       noSyntaxValidation: false,
@@ -62,7 +70,6 @@ export function CodeEditor() {
       diagnosticCodesToIgnore: [1375, 1378, 2307, 2304, 2552, 2792, 2339],
     });
 
-    // Add React types
     const reactTypes = `
       declare module 'react' {
         export function useState<T>(initialState: T | (() => T)): [T, (value: T) => void];

@@ -61,9 +61,14 @@ export function FileExplorer() {
     setNewName("");
   };
 
+  /**
+   * Handles blur event when creating a new file/folder
+   * 
+   * Adds a 150ms delay to allow click events to register before finalizing
+   * the file/folder creation. This prevents premature cancellation when
+   * clicking UI elements.
+   */
   const handleBlur = (e: React.FocusEvent) => {
-    // Only handle blur if we're not clicking within the same input
-    // Add a small delay to allow the click to register
     setTimeout(() => {
       if (creatingType) {
         handleCreate();
@@ -77,6 +82,18 @@ export function FileExplorer() {
     }
   }, [creatingType]);
 
+  /**
+   * Recursively renders a file tree node with proper indentation
+   * 
+   * Handles both files and folders, with support for:
+   * - Collapsible folder navigation
+   * - File selection highlighting
+   * - Context menu operations
+   * - Inline file/folder creation
+   * 
+   * @param node - File or folder node to render
+   * @param depth - Current nesting level for indentation calculation
+   */
   const FileTreeNode = ({ node, depth = 0 }: { node: FileNode; depth?: number }) => {
     const isFolder = node.type === "folder";
     const isSelected = selectedFile?.id === node.id;
