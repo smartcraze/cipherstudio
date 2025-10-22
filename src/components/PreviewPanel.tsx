@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFileSystem } from "@/contexts/FileSystemContext";
 import { FileNode } from "@/types/file-system";
-import { Eye, AlertCircle, RotateCw } from "lucide-react";
+import { Eye, AlertCircle, RotateCw, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function PreviewPanel() {
@@ -9,8 +9,34 @@ export function PreviewPanel() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [key, setKey] = useState(0);
-  const [blobUrl, setBlobUrl] = useState<string>("");
-  const hasInitialized = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [debouncedFiles, setDebouncedFiles] = useState(files);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  // Debounce file changes to prevent constant reloading
+  useEffect(() => {
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Show pending state if files have changed
+    setIsPending(true);
+
+    // Set new timer - wait 800ms after last change before updating preview
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedFiles(files);
+      setIsPending(false);
+    }, 800);
+
+    // Cleanup
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [files]);
 
   const getAllFiles = (nodes: FileNode[]): FileNode[] => {
     let result: FileNode[] = [];
@@ -28,37 +54,55 @@ export function PreviewPanel() {
   const refresh = () => {
     setKey((prev) => prev + 1);
     setError(null);
+    setIsLoading(true);
+    setIsPending(false);
+    // Force immediate update on manual refresh
+    setDebouncedFiles(files);
   };
 
-  // Force initial render
   useEffect(() => {
-    if (!hasInitialized.current && files.length > 0) {
-      hasInitialized.current = true;
-      setTimeout(() => setKey(1), 100);
-    }
-  }, [files]);
-
-  useEffect(() => {
-    // Clean up previous blob URL
-    if (blobUrl) {
-      URL.revokeObjectURL(blobUrl);
-    }
-
-    const allFiles = getAllFiles(files);
+    setIsLoading(true);
+    
+    const allFiles = getAllFiles(debouncedFiles);
     const appFile = allFiles.find((f) => f.name === "App.tsx");
     const cssFile = allFiles.find((f) => f.name === "index.css");
 
+    console.log('Preview Panel - Files:', allFiles.map(f => f.name));
+    console.log('Preview Panel - App File:', appFile);
+    console.log('Preview Panel - App Content:', appFile?.content);
+
     if (!appFile) {
-      setError("Missing App.tsx file");
+      setError("Missing App.tsx file - Create an App.tsx file to see the preview");
+      setIsLoading(false);
       return;
     }
 
     if (!appFile.content || appFile.content.trim() === "") {
-      setError("App.tsx is empty - click on App.tsx to view the default code");
+      setError("App.tsx is empty - Click on App.tsx in the file explorer to load the default code");
+      setIsLoading(false);
       return;
     }
 
     try {
+      // Transform the code to handle both default and named exports
+      let transformedCode = appFile.content;
+      
+      // Replace 'export default' with a variable assignment
+      transformedCode = transformedCode.replace(/export\s+default\s+(\w+);?\s*$/m, 'const AppComponent = $1;');
+      
+      // Handle inline default export: export default function App() { ... }
+      transformedCode = transformedCode.replace(/export\s+default\s+function\s+(\w+)/g, 'function $1');
+      
+      // Handle inline default export: export default () => { ... }
+      if (transformedCode.includes('export default')) {
+        transformedCode = transformedCode.replace(/export\s+default\s+/, 'const AppComponent = ');
+      }
+      
+      // Remove other export statements
+      transformedCode = transformedCode.replace(/export\s+(?:const|let|var|function|class)\s+/g, '');
+      
+      console.log('Transformed Code:', transformedCode);
+      
       const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,7 +111,7 @@ export function PreviewPanel() {
   <title>Preview</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { margin: 0; padding: 0; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
     #root { min-height: 100vh; }
     ${cssFile?.content || ""}
   </style>
@@ -81,20 +125,40 @@ export function PreviewPanel() {
   <script src="https://cdn.tailwindcss.com"></script>
   
   <script type="text/babel">
-    const { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext } = React;
+    const { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext, Fragment } = React;
     
-    ${appFile.content}
+    ${transformedCode}
     
     try {
       const container = document.getElementById('root');
       const root = ReactDOM.createRoot(container);
-      root.render(React.createElement(App));
+      
+      // Try to find the App component
+      let ComponentToRender;
+      if (typeof AppComponent !== 'undefined') {
+        ComponentToRender = AppComponent;
+      } else if (typeof App !== 'undefined') {
+        ComponentToRender = App;
+      } else {
+        throw new Error('No App or AppComponent found. Make sure to export a default component named App.');
+      }
+      
+      console.log('Rendering component:', ComponentToRender);
+      root.render(React.createElement(ComponentToRender));
     } catch (error) {
       console.error('Render error:', error);
       document.getElementById('root').innerHTML = \`
         <div style="padding: 20px; color: #ef4444; font-family: monospace; background: #fee2e2; min-height: 100vh;">
           <h2 style="margin-bottom: 10px;">⚠️ Render Error</h2>
           <pre style="white-space: pre-wrap; word-wrap: break-word;">\${error.message}</pre>
+          <div style="margin-top: 20px; padding: 10px; background: white; border-radius: 4px;">
+            <strong>Tips:</strong>
+            <ul style="margin-top: 10px; padding-left: 20px;">
+              <li>Make sure your component is named 'App'</li>
+              <li>Check for syntax errors in your code</li>
+              <li>Ensure all JSX elements are properly closed</li>
+            </ul>
+          </div>
         </div>
       \`;
     }
@@ -104,24 +168,27 @@ export function PreviewPanel() {
 
       const blob = new Blob([htmlContent], { type: "text/html" });
       const url = URL.createObjectURL(blob);
-      setBlobUrl(url);
       
       if (iframeRef.current) {
         iframeRef.current.src = url;
         setError(null);
+        
+        // Set loading to false after iframe loads
+        iframeRef.current.onload = () => {
+          setIsLoading(false);
+        };
       }
+
+      // Cleanup function
+      return () => {
+        URL.revokeObjectURL(url);
+      };
     } catch (err) {
       console.error("Preview error:", err);
       setError(err instanceof Error ? err.message : "Unknown error occurred");
+      setIsLoading(false);
     }
-
-    // Cleanup function
-    return () => {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    };
-  }, [files, key]);
+  }, [debouncedFiles, key]);
 
   return (
     <div className="h-full bg-editor-bg flex flex-col">
@@ -129,6 +196,12 @@ export function PreviewPanel() {
         <div className="flex items-center gap-2">
           <Eye className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">Preview</span>
+          {isPending && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="w-3 h-3 animate-pulse" />
+              <span>Updating...</span>
+            </span>
+          )}
         </div>
         <Button
           variant="ghost"
@@ -153,13 +226,23 @@ export function PreviewPanel() {
           </div>
         </div>
       ) : (
-        <iframe
-          key={key}
-          ref={iframeRef}
-          className="flex-1 w-full border-0 bg-white"
-          title="Preview"
-          sandbox="allow-scripts allow-same-origin"
-        />
+        <div className="flex-1 relative">
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading preview...</p>
+              </div>
+            </div>
+          )}
+          <iframe
+            key={key}
+            ref={iframeRef}
+            className="w-full h-full border-0 bg-white"
+            title="Preview"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
       )}
     </div>
   );

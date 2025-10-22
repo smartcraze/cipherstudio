@@ -61,6 +61,16 @@ export function FileExplorer() {
     setNewName("");
   };
 
+  const handleBlur = (e: React.FocusEvent) => {
+    // Only handle blur if we're not clicking within the same input
+    // Add a small delay to allow the click to register
+    setTimeout(() => {
+      if (creatingType) {
+        handleCreate();
+      }
+    }, 150);
+  };
+
   useEffect(() => {
     if (creatingType && inputRef.current) {
       inputRef.current.focus();
@@ -159,9 +169,10 @@ export function FileExplorer() {
                     if (e.key === "Enter") handleCreate();
                     if (e.key === "Escape") cancelCreating();
                   }}
-                  onBlur={handleCreate}
+                  onBlur={handleBlur}
                   className="h-6 text-sm bg-editor-bg border-primary"
                   placeholder={creatingType === "file" ? "filename.tsx" : "foldername"}
+                  autoFocus
                 />
               </div>
             )}
@@ -219,9 +230,10 @@ export function FileExplorer() {
                 if (e.key === "Enter") handleCreate();
                 if (e.key === "Escape") cancelCreating();
               }}
-              onBlur={handleCreate}
+              onBlur={handleBlur}
               className="h-6 text-sm bg-editor-bg border-primary"
               placeholder={creatingType === "file" ? "filename.tsx" : "foldername"}
+              autoFocus
             />
           </div>
         )}

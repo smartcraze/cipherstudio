@@ -15,7 +15,7 @@ const defaultFiles: FileNode[] = [
         id: "2",
         name: "App.tsx",
         type: "file",
-        content: `import React from 'react';\n\nfunction App() {\n  return (\n    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">\n      <div className="text-center text-white">\n        <h1 className="text-5xl font-bold mb-4">Welcome to CipherStudio</h1>\n        <p className="text-xl">Start coding your React app here!</p>\n      </div>\n    </div>\n  );\n}\n\nexport default App;`,
+        content: `function App() {\n  return (\n    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">\n      <div className="text-center text-white">\n        <h1 className="text-5xl font-bold mb-4">Welcome to IDE Craft Pro</h1>\n        <p className="text-xl mb-4">Start coding your React app here!</p>\n        <p className="text-sm opacity-80">Edit this code in the editor to see changes live!</p>\n      </div>\n    </div>\n  );\n}\n\nexport default App;`,
       },
       {
         id: "3",
@@ -39,6 +39,29 @@ export function FileSystemProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : defaultFiles;
   });
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(null);
+
+  // Auto-select App.tsx on initial load
+  useEffect(() => {
+    if (!selectedFile && files.length > 0) {
+      const findAppFile = (nodes: FileNode[]): FileNode | null => {
+        for (const node of nodes) {
+          if (node.type === "file" && node.name === "App.tsx") {
+            return node;
+          }
+          if (node.children) {
+            const found = findAppFile(node.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      const appFile = findAppFile(files);
+      if (appFile) {
+        setSelectedFile(appFile);
+      }
+    }
+  }, [files, selectedFile]);
 
   useEffect(() => {
     localStorage.setItem("cipherstudio-files", JSON.stringify(files));

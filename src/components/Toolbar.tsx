@@ -1,8 +1,19 @@
-import { Download, Upload, Code2 } from "lucide-react";
+import { Download, Upload, Code2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useFileSystem } from "@/contexts/FileSystemContext";
 import { useRef } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function Toolbar() {
   const { exportProject, importProject } = useFileSystem();
@@ -16,6 +27,11 @@ export function Toolbar() {
     if (e.target.files) {
       importProject(e.target.files);
     }
+  };
+
+  const handleReset = () => {
+    localStorage.removeItem("cipherstudio-files");
+    window.location.reload();
   };
 
   return (
@@ -46,6 +62,30 @@ export function Toolbar() {
           <Download className="w-4 h-4 mr-2" />
           Export
         </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset Project?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will clear all your files and reset to the default project. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReset}>Reset Project</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <div className="h-6 w-px bg-border mx-1" />
         <ThemeToggle />
       </div>

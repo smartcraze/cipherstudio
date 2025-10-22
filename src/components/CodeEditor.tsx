@@ -1,7 +1,8 @@
-import Editor from "@monaco-editor/react";
+import Editor, { OnMount } from "@monaco-editor/react";
 import { useFileSystem } from "@/contexts/FileSystemContext";
 import { useEffect, useState } from "react";
 import { File } from "lucide-react";
+import * as monaco from "monaco-editor";
 
 export function CodeEditor() {
   const { selectedFile, updateFileContent } = useFileSystem();
@@ -23,6 +24,63 @@ export function CodeEditor() {
 
     return () => observer.disconnect();
   }, []);
+
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    // Configure TypeScript compiler options for JSX support
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      jsxFactory: 'React.createElement',
+      reactNamespace: 'React',
+      allowNonTsExtensions: true,
+      allowJs: true,
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      allowSyntheticDefaultImports: true,
+      esModuleInterop: true,
+    });
+
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      jsx: monaco.languages.typescript.JsxEmit.React,
+      jsxFactory: 'React.createElement',
+      reactNamespace: 'React',
+      allowNonTsExtensions: true,
+      allowJs: true,
+      target: monaco.languages.typescript.ScriptTarget.Latest,
+      allowSyntheticDefaultImports: true,
+      esModuleInterop: true,
+    });
+
+    // Disable type checking for external libraries
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
+      diagnosticCodesToIgnore: [1375, 1378, 2307, 2304, 2552, 2792, 2339],
+    });
+
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
+      diagnosticCodesToIgnore: [1375, 1378, 2307, 2304, 2552, 2792, 2339],
+    });
+
+    // Add React types
+    const reactTypes = `
+      declare module 'react' {
+        export function useState<T>(initialState: T | (() => T)): [T, (value: T) => void];
+        export function useEffect(effect: () => void | (() => void), deps?: any[]): void;
+        export function useRef<T>(initialValue: T): { current: T };
+        export function useMemo<T>(factory: () => T, deps: any[]): T;
+        export function useCallback<T extends (...args: any[]) => any>(callback: T, deps: any[]): T;
+        export function createContext<T>(defaultValue: T): any;
+        export function useContext<T>(context: any): T;
+        export const Fragment: any;
+      }
+    `;
+
+    monaco.languages.typescript.typescriptDefaults.addExtraLib(
+      reactTypes,
+      'file:///node_modules/@types/react/index.d.ts'
+    );
+  };
 
   const getLanguage = (filename: string) => {
     const ext = filename.split(".").pop()?.toLowerCase();
@@ -63,6 +121,7 @@ export function CodeEditor() {
           language={getLanguage(selectedFile.name)}
           value={selectedFile.content || ""}
           theme={theme}
+          onMount={handleEditorDidMount}
           onChange={(value) => {
             if (value !== undefined) {
               updateFileContent(selectedFile.id, value);
