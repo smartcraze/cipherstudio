@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -18,15 +18,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export function FileExplorer() {
   const {
@@ -39,31 +31,46 @@ export function FileExplorer() {
     toggleFolder,
   } = useFileSystem();
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState<"file" | "folder">("file");
-  const [dialogParentId, setDialogParentId] = useState<string | null>(null);
+  const [creatingType, setCreatingType] = useState<"file" | "folder" | null>(null);
+  const [creatingParentId, setCreatingParentId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleCreate = () => {
-    if (!newName.trim()) return;
-    if (dialogType === "file") {
-      createFile(dialogParentId, newName);
-    } else {
-      createFolder(dialogParentId, newName);
-    }
-    setDialogOpen(false);
+  const startCreating = (type: "file" | "folder", parentId: string | null) => {
+    setCreatingType(type);
+    setCreatingParentId(parentId);
     setNewName("");
   };
 
-  const openDialog = (type: "file" | "folder", parentId: string | null) => {
-    setDialogType(type);
-    setDialogParentId(parentId);
-    setDialogOpen(true);
+  const handleCreate = () => {
+    if (!newName.trim()) {
+      cancelCreating();
+      return;
+    }
+    if (creatingType === "file") {
+      createFile(creatingParentId, newName);
+    } else if (creatingType === "folder") {
+      createFolder(creatingParentId, newName);
+    }
+    cancelCreating();
   };
+
+  const cancelCreating = () => {
+    setCreatingType(null);
+    setCreatingParentId(null);
+    setNewName("");
+  };
+
+  useEffect(() => {
+    if (creatingType && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [creatingType]);
 
   const FileTreeNode = ({ node, depth = 0 }: { node: FileNode; depth?: number }) => {
     const isFolder = node.type === "folder";
     const isSelected = selectedFile?.id === node.id;
+    const showCreatingHere = isFolder && node.isOpen && creatingParentId === node.id;
 
     return (
       <div>
@@ -111,11 +118,11 @@ export function FileExplorer() {
           <ContextMenuContent>
             {isFolder && (
               <>
-                <ContextMenuItem onClick={() => openDialog("file", node.id)}>
+                <ContextMenuItem onClick={() => startCreating("file", node.id)}>
                   <Plus className="w-4 h-4 mr-2" />
                   New File
                 </ContextMenuItem>
-                <ContextMenuItem onClick={() => openDialog("folder", node.id)}>
+                <ContextMenuItem onClick={() => startCreating("folder", node.id)}>
                   <FolderPlus className="w-4 h-4 mr-2" />
                   New Folder
                 </ContextMenuItem>
@@ -131,9 +138,34 @@ export function FileExplorer() {
           </ContextMenuContent>
         </ContextMenu>
 
-        {isFolder && node.isOpen && node.children && (
+        {isFolder && node.isOpen && (
           <div>
-            {node.children.map((child) => (
+            {showCreatingHere && (
+              <div
+                className="flex items-center gap-1 px-2 py-1 bg-sidebar-hover"
+                style={{ paddingLeft: `${(depth + 1) * 12 + 8}px` }}
+              >
+                <span className="w-4" />
+                {creatingType === "folder" ? (
+                  <Folder className="w-4 h-4 text-primary" />
+                ) : (
+                  <File className="w-4 h-4 text-muted-foreground" />
+                )}
+                <Input
+                  ref={inputRef}
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreate();
+                    if (e.key === "Escape") cancelCreating();
+                  }}
+                  onBlur={handleCreate}
+                  className="h-6 text-sm bg-editor-bg border-primary"
+                  placeholder={creatingType === "file" ? "filename.tsx" : "foldername"}
+                />
+              </div>
+            )}
+            {node.children?.map((child) => (
               <FileTreeNode key={child.id} node={child} depth={depth + 1} />
             ))}
           </div>
@@ -143,66 +175,60 @@ export function FileExplorer() {
   };
 
   return (
-    <>
-      <div className="h-full bg-sidebar-bg flex flex-col">
-        <div className="flex items-center justify-between p-2 border-b border-panel-border">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Explorer
-          </span>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => openDialog("file", null)}
-            >
-              <Plus className="w-3 h-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => openDialog("folder", null)}
-            >
-              <FolderPlus className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-auto">
-          {files.map((node) => (
-            <FileTreeNode key={node.id} node={node} />
-          ))}
+    <div className="h-full bg-sidebar-bg flex flex-col">
+      <div className="flex items-center justify-between p-2 border-b border-panel-border">
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Explorer
+        </span>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => startCreating("file", null)}
+            title="New File"
+          >
+            <Plus className="w-3 h-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => startCreating("folder", null)}
+            title="New Folder"
+          >
+            <FolderPlus className="w-3 h-3" />
+          </Button>
         </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              Create New {dialogType === "file" ? "File" : "Folder"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="name">Name</Label>
+      <div className="flex-1 overflow-auto">
+        {creatingParentId === null && creatingType && (
+          <div className="flex items-center gap-1 px-2 py-1 bg-sidebar-hover">
+            <span className="w-4" />
+            {creatingType === "folder" ? (
+              <Folder className="w-4 h-4 text-primary" />
+            ) : (
+              <File className="w-4 h-4 text-muted-foreground" />
+            )}
             <Input
-              id="name"
+              ref={inputRef}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder={dialogType === "file" ? "file.tsx" : "folder-name"}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleCreate();
+                if (e.key === "Escape") cancelCreating();
               }}
+              onBlur={handleCreate}
+              className="h-6 text-sm bg-editor-bg border-primary"
+              placeholder={creatingType === "file" ? "filename.tsx" : "foldername"}
             />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate}>Create</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        )}
+        {files.map((node) => (
+          <FileTreeNode key={node.id} node={node} />
+        ))}
+      </div>
+    </div>
   );
 }
