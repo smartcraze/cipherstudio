@@ -16,7 +16,7 @@ export function PreviewPanel() {
 
   /**
    * Debounces file changes to prevent excessive preview reloads
-   * 
+   *
    * Waits 800ms after the last file change before updating the preview.
    * This improves performance by avoiding constant re-renders while typing.
    */
@@ -41,10 +41,10 @@ export function PreviewPanel() {
 
   /**
    * Recursively flattens the file tree structure into a single array
-   * 
+   *
    * Traverses the nested folder structure and collects all file nodes,
    * excluding folders from the result.
-   * 
+   *
    * @param nodes - Array of file/folder nodes to traverse
    * @returns Flattened array containing only file nodes
    */
@@ -71,23 +71,30 @@ export function PreviewPanel() {
 
   useEffect(() => {
     setIsLoading(true);
-    
+
     const allFiles = getAllFiles(debouncedFiles);
     const appFile = allFiles.find((f) => f.name === "App.tsx");
     const cssFile = allFiles.find((f) => f.name === "index.css");
 
-    console.log('Preview Panel - Files:', allFiles.map(f => f.name));
-    console.log('Preview Panel - App File:', appFile);
-    console.log('Preview Panel - App Content:', appFile?.content);
+    console.log(
+      "Preview Panel - Files:",
+      allFiles.map((f) => f.name),
+    );
+    console.log("Preview Panel - App File:", appFile);
+    console.log("Preview Panel - App Content:", appFile?.content);
 
     if (!appFile) {
-      setError("Missing App.tsx file - Create an App.tsx file to see the preview");
+      setError(
+        "Missing App.tsx file - Create an App.tsx file to see the preview",
+      );
       setIsLoading(false);
       return;
     }
 
     if (!appFile.content || appFile.content.trim() === "") {
-      setError("App.tsx is empty - Click on App.tsx in the file explorer to load the default code");
+      setError(
+        "App.tsx is empty - Click on App.tsx in the file explorer to load the default code",
+      );
       setIsLoading(false);
       return;
     }
@@ -95,7 +102,7 @@ export function PreviewPanel() {
     try {
       /**
        * Transform ES6 module exports for browser execution
-       * 
+       *
        * Converts various export patterns to browser-compatible code:
        * 1. 'export default App' -> 'const AppComponent = App'
        * 2. 'export default function App()' -> 'function App()'
@@ -103,18 +110,30 @@ export function PreviewPanel() {
        * 4. Removes all named exports (export const/let/var/function/class)
        */
       let transformedCode = appFile.content;
-      
-      transformedCode = transformedCode.replace(/export\s+default\s+(\w+);?\s*$/m, 'const AppComponent = $1;');
-      transformedCode = transformedCode.replace(/export\s+default\s+function\s+(\w+)/g, 'function $1');
-      
-      if (transformedCode.includes('export default')) {
-        transformedCode = transformedCode.replace(/export\s+default\s+/, 'const AppComponent = ');
+
+      transformedCode = transformedCode.replace(
+        /export\s+default\s+(\w+);?\s*$/m,
+        "const AppComponent = $1;",
+      );
+      transformedCode = transformedCode.replace(
+        /export\s+default\s+function\s+(\w+)/g,
+        "function $1",
+      );
+
+      if (transformedCode.includes("export default")) {
+        transformedCode = transformedCode.replace(
+          /export\s+default\s+/,
+          "const AppComponent = ",
+        );
       }
-      
-      transformedCode = transformedCode.replace(/export\s+(?:const|let|var|function|class)\s+/g, '');
-      
-      console.log('Transformed Code:', transformedCode);
-      
+
+      transformedCode = transformedCode.replace(
+        /export\s+(?:const|let|var|function|class)\s+/g,
+        "",
+      );
+
+      console.log("Transformed Code:", transformedCode);
+
       const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -180,11 +199,11 @@ export function PreviewPanel() {
 
       const blob = new Blob([htmlContent], { type: "text/html" });
       const url = URL.createObjectURL(blob);
-      
+
       if (iframeRef.current) {
         iframeRef.current.src = url;
         setError(null);
-        
+
         iframeRef.current.onload = () => {
           setIsLoading(false);
         };
@@ -223,7 +242,7 @@ export function PreviewPanel() {
           <RotateCw className="w-3 h-3" />
         </Button>
       </div>
-      
+
       {error ? (
         <div className="flex-1 flex items-center justify-center p-4 bg-white">
           <div className="text-center text-destructive max-w-md">
@@ -241,7 +260,9 @@ export function PreviewPanel() {
             <div className="absolute inset-0 flex items-center justify-center bg-white z-10">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Loading preview...</p>
+                <p className="text-sm text-muted-foreground">
+                  Loading preview...
+                </p>
               </div>
             </div>
           )}

@@ -11,34 +11,34 @@ All colors MUST be HSL.
     /* Light theme - VS Code Light+ */
     --background: 0 0% 100%;
     --foreground: 0 0% 13%;
-    
+
     --card: 0 0% 98%;
     --card-foreground: 0 0% 13%;
-    
+
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 13%;
-    
+
     --primary: 207 100% 40%;
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 13%;
-    
+
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
-    
+
     --accent: 207 100% 95%;
     --accent-foreground: 207 100% 40%;
-    
+
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 0 0% 90%;
     --input: 0 0% 90%;
     --ring: 207 100% 40%;
-    
+
     --radius: 0.25rem;
-    
+
     /* IDE specific colors */
     --editor-background: 0 0% 100%;
     --editor-foreground: 0 0% 13%;
@@ -48,7 +48,7 @@ All colors MUST be HSL.
     --titlebar-bg: 0 0% 96%;
     --panel-border: 0 0% 88%;
     --activity-bar: 0 0% 95%;
-    
+
     /* Syntax highlighting (light) */
     --syntax-keyword: 207 100% 40%;
     --syntax-string: 120 73% 35%;
@@ -61,32 +61,32 @@ All colors MUST be HSL.
     /* Dark theme - VS Code Dark+ */
     --background: 0 0% 12%;
     --foreground: 0 0% 84%;
-    
+
     --card: 0 0% 14%;
     --card-foreground: 0 0% 84%;
-    
+
     --popover: 0 0% 14%;
     --popover-foreground: 0 0% 84%;
-    
+
     --primary: 207 100% 50%;
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 0 0% 18%;
     --secondary-foreground: 0 0% 84%;
-    
+
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 60%;
-    
+
     --accent: 207 100% 15%;
     --accent-foreground: 207 100% 50%;
-    
+
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 0 0% 20%;
     --input: 0 0% 20%;
     --ring: 207 100% 50%;
-    
+
     /* IDE specific colors */
     --editor-background: 0 0% 12%;
     --editor-foreground: 0 0% 84%;
@@ -96,7 +96,7 @@ All colors MUST be HSL.
     --titlebar-bg: 0 0% 10%;
     --panel-border: 0 0% 20%;
     --activity-bar: 0 0% 8%;
-    
+
     /* Syntax highlighting (dark) */
     --syntax-keyword: 207 100% 65%;
     --syntax-string: 120 50% 60%;

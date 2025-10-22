@@ -64,11 +64,7 @@ export function Toolbar() {
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8"
-            >
+            <Button variant="ghost" size="sm" className="h-8">
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
             </Button>
@@ -77,12 +73,15 @@ export function Toolbar() {
             <AlertDialogHeader>
               <AlertDialogTitle>Reset Project?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will clear all your files and reset to the default project. This action cannot be undone.
+                This will clear all your files and reset to the default project.
+                This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleReset}>Reset Project</AlertDialogAction>
+              <AlertDialogAction onClick={handleReset}>
+                Reset Project
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

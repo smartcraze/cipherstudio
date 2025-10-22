@@ -27,19 +27,19 @@ export function CodeEditor() {
 
   /**
    * Configures Monaco Editor for TypeScript/JSX support
-   * 
+   *
    * This function sets up the Monaco editor with proper TypeScript and JSX compilation options,
    * configures diagnostics to ignore common external library errors, and adds React type definitions
    * to enable IntelliSense for React hooks and components.
-   * 
+   *
    * @param editor - Monaco editor instance
    * @param monaco - Monaco namespace with language services
    */
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       jsx: monaco.languages.typescript.JsxEmit.React,
-      jsxFactory: 'React.createElement',
-      reactNamespace: 'React',
+      jsxFactory: "React.createElement",
+      reactNamespace: "React",
       allowNonTsExtensions: true,
       allowJs: true,
       target: monaco.languages.typescript.ScriptTarget.Latest,
@@ -49,8 +49,8 @@ export function CodeEditor() {
 
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
       jsx: monaco.languages.typescript.JsxEmit.React,
-      jsxFactory: 'React.createElement',
-      reactNamespace: 'React',
+      jsxFactory: "React.createElement",
+      reactNamespace: "React",
       allowNonTsExtensions: true,
       allowJs: true,
       target: monaco.languages.typescript.ScriptTarget.Latest,
@@ -85,7 +85,7 @@ export function CodeEditor() {
 
     monaco.languages.typescript.typescriptDefaults.addExtraLib(
       reactTypes,
-      'file:///node_modules/@types/react/index.d.ts'
+      "file:///node_modules/@types/react/index.d.ts",
     );
   };
 
@@ -110,7 +110,9 @@ export function CodeEditor() {
         <div className="text-center">
           <File className="w-16 h-16 mx-auto mb-4 opacity-20" />
           <p className="text-lg">No file selected</p>
-          <p className="text-sm mt-2">Select a file from the explorer to start editing</p>
+          <p className="text-sm mt-2">
+            Select a file from the explorer to start editing
+          </p>
         </div>
       </div>
     );

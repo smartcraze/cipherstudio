@@ -31,7 +31,9 @@ export function FileExplorer() {
     toggleFolder,
   } = useFileSystem();
 
-  const [creatingType, setCreatingType] = useState<"file" | "folder" | null>(null);
+  const [creatingType, setCreatingType] = useState<"file" | "folder" | null>(
+    null,
+  );
   const [creatingParentId, setCreatingParentId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +65,7 @@ export function FileExplorer() {
 
   /**
    * Handles blur event when creating a new file/folder
-   * 
+   *
    * Adds a 150ms delay to allow click events to register before finalizing
    * the file/folder creation. This prevents premature cancellation when
    * clicking UI elements.
@@ -84,20 +86,27 @@ export function FileExplorer() {
 
   /**
    * Recursively renders a file tree node with proper indentation
-   * 
+   *
    * Handles both files and folders, with support for:
    * - Collapsible folder navigation
    * - File selection highlighting
    * - Context menu operations
    * - Inline file/folder creation
-   * 
+   *
    * @param node - File or folder node to render
    * @param depth - Current nesting level for indentation calculation
    */
-  const FileTreeNode = ({ node, depth = 0 }: { node: FileNode; depth?: number }) => {
+  const FileTreeNode = ({
+    node,
+    depth = 0,
+  }: {
+    node: FileNode;
+    depth?: number;
+  }) => {
     const isFolder = node.type === "folder";
     const isSelected = selectedFile?.id === node.id;
-    const showCreatingHere = isFolder && node.isOpen && creatingParentId === node.id;
+    const showCreatingHere =
+      isFolder && node.isOpen && creatingParentId === node.id;
 
     return (
       <div>
@@ -128,7 +137,7 @@ export function FileExplorer() {
                 </span>
               )}
               {!isFolder && <span className="w-4" />}
-              
+
               {isFolder ? (
                 node.isOpen ? (
                   <FolderOpen className="w-4 h-4 text-primary" />
@@ -138,7 +147,7 @@ export function FileExplorer() {
               ) : (
                 <File className="w-4 h-4 text-muted-foreground" />
               )}
-              
+
               <span className="text-sm truncate">{node.name}</span>
             </div>
           </ContextMenuTrigger>
@@ -149,7 +158,9 @@ export function FileExplorer() {
                   <Plus className="w-4 h-4 mr-2" />
                   New File
                 </ContextMenuItem>
-                <ContextMenuItem onClick={() => startCreating("folder", node.id)}>
+                <ContextMenuItem
+                  onClick={() => startCreating("folder", node.id)}
+                >
                   <FolderPlus className="w-4 h-4 mr-2" />
                   New Folder
                 </ContextMenuItem>
@@ -188,7 +199,9 @@ export function FileExplorer() {
                   }}
                   onBlur={handleBlur}
                   className="h-6 text-sm bg-editor-bg border-primary"
-                  placeholder={creatingType === "file" ? "filename.tsx" : "foldername"}
+                  placeholder={
+                    creatingType === "file" ? "filename.tsx" : "foldername"
+                  }
                   autoFocus
                 />
               </div>
@@ -249,7 +262,9 @@ export function FileExplorer() {
               }}
               onBlur={handleBlur}
               className="h-6 text-sm bg-editor-bg border-primary"
-              placeholder={creatingType === "file" ? "filename.tsx" : "foldername"}
+              placeholder={
+                creatingType === "file" ? "filename.tsx" : "foldername"
+              }
               autoFocus
             />
           </div>
