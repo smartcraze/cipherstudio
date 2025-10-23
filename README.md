@@ -2,7 +2,11 @@
 
 CipherStudio is a lightweight web-based code editor built with React, TypeScript, and Vite. It uses Monaco Editor (the same editor as VS Code) and Tailwind CSS for a fast, modern, and responsive development experience.
 
----
+
+
+https://github.com/user-attachments/assets/4fea9ef7-2bbc-4c09-a635-97b3f4101b45
+
+
 
 ### Tech Stack
 
